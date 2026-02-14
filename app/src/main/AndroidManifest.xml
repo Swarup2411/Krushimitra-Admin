@@ -12,7 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KrushimitraAdminApp">
         <activity
-            android:name=".MainActivity"
+            android:name=".ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SplashActivityAdmin"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,6 +23,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".RegisterActivityAdmin"
+            android:exported="true" />
+        <activity
+            android:name=".LoginActivityAdmin"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

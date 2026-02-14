@@ -10,6 +10,14 @@
         android:layout_height="match_parent"
         android:layout_above="@id/bottomNavigation"/>
 
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/topAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:titleTextColor="@android:color/white"/>
+
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
