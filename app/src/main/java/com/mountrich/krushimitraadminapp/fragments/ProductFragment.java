@@ -53,7 +53,7 @@ public class ProductFragment extends Fragment {
         // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         productList = new ArrayList<>();
-        adapter = new ProductAdapter(productList);
+        adapter = new ProductAdapter(getContext(), productList);
         recyclerView.setAdapter(adapter);
 
         // Firestore Instance
@@ -90,6 +90,7 @@ public class ProductFragment extends Fragment {
 
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Product product = document.toObject(Product.class);
+                            product.setId(document.getId());
                             productList.add(product);
                         }
 

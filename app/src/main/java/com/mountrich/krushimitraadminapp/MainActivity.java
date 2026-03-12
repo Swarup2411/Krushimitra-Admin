@@ -27,8 +27,6 @@ public class MainActivity extends AppCompatActivity {
 //        getSupportActionBar().hide();
         bottomNavigationView = findViewById(R.id.bottomNavigation);
 
-        MaterialToolbar toolbar = findViewById(R.id.topAppBar);
-        setSupportActionBar(toolbar);
 
 
         // Default fragment
