@@ -1,30 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
+
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="?attr/actionBarSize">
+    android:background="#F6F7FB">
 
     <!-- Main Form -->
     <ScrollView
         android:id="@+id/formLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:padding="16dp">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginTop="28dp"
+            android:padding="18dp">
 
-            <!-- HEADER SECTION -->
+            <!-- HEADER -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="12dp"
                 android:layout_marginBottom="20dp">
 
                 <TextView
@@ -38,19 +38,67 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Shop Owner 👋 Please enter product details below"
+                    android:text="Enter product details for your shop"
                     android:textSize="14sp"
                     android:textColor="#757575"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
 
 
-            <!-- Product Name -->
+            <!-- PRODUCT IMAGE CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/imgProduct"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                     />
+
+                    <!-- Upload Hint -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/gallary_icon"
+                            app:tint="#9E9E9E"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Image Display Here"
+                            android:textSize="13sp"
+                            android:textColor="#9E9E9E"
+                            android:layout_marginTop="6dp"/>
+                    </LinearLayout>
+
+                </FrameLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- PRODUCT NAME -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="Product Name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Product Name"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -60,12 +108,12 @@
             </com.google.android.material.textfield.TextInputLayout>
 
 
-            <!-- Category Dropdown (Improved Material Style) -->
+            <!-- CATEGORY -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:hint="Category"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Category"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -75,12 +123,12 @@
             </com.google.android.material.textfield.TextInputLayout>
 
 
-            <!-- Price -->
+            <!-- PRICE -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="Price"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Price"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -91,12 +139,12 @@
             </com.google.android.material.textfield.TextInputLayout>
 
 
-            <!-- Stock -->
+            <!-- STOCK -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="Stock Quantity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Stock Quantity"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -107,12 +155,12 @@
             </com.google.android.material.textfield.TextInputLayout>
 
 
-            <!-- Description -->
+            <!-- DESCRIPTION -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="Product Description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Description"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -124,48 +172,34 @@
             </com.google.android.material.textfield.TextInputLayout>
 
 
-            <!-- Image Preview Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp">
-
-                <ImageView
-                    android:id="@+id/imgProduct"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@android:drawable/ic_menu_gallery"/>
-            </com.google.android.material.card.MaterialCardView>
-
-
-            <!-- Select Image Button -->
+            <!-- SELECT IMAGE BUTTON -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSelectImage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Select Product Image"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_marginBottom="10dp"/>
+                app:cornerRadius="12dp"
+                android:layout_marginBottom="12dp"/>
 
 
-            <!-- Submit Button -->
+            <!-- SUBMIT BUTTON -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSubmit"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:text="Submit Product"
-                app:cornerRadius="12dp"
-                android:layout_marginTop="6dp"/>
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#2E7D32"
+                app:cornerRadius="12dp"/>
 
         </LinearLayout>
 
     </ScrollView>
 
 
-    <!-- Shimmer Layout -->
+    <!-- SHIMMER LOADING -->
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmerLayout"
         android:layout_width="match_parent"
@@ -177,3 +211,4 @@
     </com.facebook.shimmer.ShimmerFrameLayout>
 
 </FrameLayout>
+
