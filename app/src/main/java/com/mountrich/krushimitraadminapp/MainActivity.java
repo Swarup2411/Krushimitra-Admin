@@ -13,16 +13,26 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.mountrich.krushimitraadminapp.fragments.AddProductFragment;
+import com.mountrich.krushimitraadminapp.fragments.OrdersFragment;
 import com.mountrich.krushimitraadminapp.fragments.ProductFragment;
 
 public class MainActivity extends AppCompatActivity {
 
     BottomNavigationView bottomNavigationView;
+    MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
         setContentView(R.layout.activity_main);
+
+
+        toolbar = findViewById(R.id.topAppBar);
+        toolbar.setTitle("KrushiMitra Admin App");
+        setSupportActionBar(toolbar);
 
 //        getSupportActionBar().hide();
         bottomNavigationView = findViewById(R.id.bottomNavigation);
@@ -36,10 +46,14 @@ public class MainActivity extends AppCompatActivity {
 
             Fragment selectedFragment = null;
 
-            if (item.getItemId() == R.id.nav_products) {
+            if (item.getItemId() == R.id.products) {
                 selectedFragment = new ProductFragment();
             } else if (item.getItemId() == R.id.nav_add) {
                 selectedFragment = new AddProductFragment();
+            }else if (item.getItemId() == R.id.orders) {
+                selectedFragment = new OrdersFragment();
+            }else if (item.getItemId() == R.id.farmers) {
+//                selectedFragment = new FarmersFragment();
             }
 
             return loadFragment(selectedFragment);

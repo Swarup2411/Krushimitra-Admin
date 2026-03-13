@@ -34,7 +34,6 @@
             android:exported="true"/>
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.KrushimitraAdminAppActionBar"
             android:exported="false" />
     </application>
 

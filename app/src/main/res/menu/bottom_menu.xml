@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/nav_products"
+        android:id="@+id/products"
         android:title="Products"
         android:icon="@drawable/product_icon"/>
 
@@ -10,5 +10,15 @@
         android:id="@+id/nav_add"
         android:title="Add Product"
         android:icon="@drawable/add_product_icon"/>
+
+    <item
+        android:id="@+id/orders"
+        android:title="Orders"
+        android:icon="@drawable/order_icon"/>
+
+    <item
+        android:id="@+id/farmers"
+        android:title="Farmers"
+        android:icon="@drawable/farmer_icon"/>
 
 </menu>
