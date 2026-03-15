@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.mountrich.krushimitraadminapp.R;
 import com.mountrich.krushimitraadminapp.adapter.OrderAdapter;
@@ -47,7 +48,12 @@ public class OrdersFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setHasFixedSize(true);
 
-        adapter = new OrderAdapter(orderList);
+        adapter = new OrderAdapter(orderList, new OrderAdapter.OnOrderUpdatedListener() {
+            @Override
+            public void onOrderUpdated() {
+                loadOrders();
+            }
+        });
         recyclerView.setAdapter(adapter);
 
         loadOrders();
@@ -56,81 +62,108 @@ public class OrdersFragment extends Fragment {
     }
 
     private void loadOrders() {
+
         db.collection("orders")
+                .orderBy("timestamp", Query.Direction.DESCENDING) // newest orders first
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+
                     orderList.clear();
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+
                         try {
+
                             String orderId = doc.getString("orderId");
                             String deliveryAddress = doc.getString("deliveryAddress");
                             String paymentMethod = doc.getString("paymentMethod");
                             String paymentStatus = doc.getString("paymentStatus");
                             String status = doc.getString("status");
 
-                            // Handle timestamp safely
+                            // 🔹 Safe timestamp parsing
                             long timestamp = 0;
                             Object tsObj = doc.get("timestamp");
+
                             if (tsObj instanceof com.google.firebase.Timestamp) {
-                                com.google.firebase.Timestamp ts = (com.google.firebase.Timestamp) tsObj;
-                                timestamp = ts.getSeconds(); // seconds
-                            } else if (tsObj instanceof Long) {
+                                timestamp = ((com.google.firebase.Timestamp) tsObj).getSeconds();
+                            }
+                            else if (tsObj instanceof Long) {
                                 timestamp = (Long) tsObj;
                             }
 
-                            // Total amount
+                            // 🔹 Total amount
                             double totalAmount = 0;
                             Object totalObj = doc.get("totalAmount");
+
                             if (totalObj instanceof Double) {
                                 totalAmount = (Double) totalObj;
-                            } else if (totalObj instanceof Long) {
+                            }
+                            else if (totalObj instanceof Long) {
                                 totalAmount = ((Long) totalObj).doubleValue();
                             }
 
-                            // Items array
+                            // 🔹 Items list
                             List<OrderItem> items = new ArrayList<>();
-                            List<Map<String, Object>> itemsMap = (List<Map<String, Object>>) doc.get("items");
+
+                            List<Map<String, Object>> itemsMap =
+                                    (List<Map<String, Object>>) doc.get("items");
+
                             if (itemsMap != null) {
+
                                 for (Map<String, Object> itemMap : itemsMap) {
+
                                     OrderItem item = new OrderItem();
+
                                     item.setProductId((String) itemMap.get("productId"));
                                     item.setName((String) itemMap.get("name"));
                                     item.setImageUrl((String) itemMap.get("imageUrl"));
 
                                     Object priceObj = itemMap.get("price");
                                     double price = 0;
-                                    if (priceObj instanceof Double) price = (Double) priceObj;
-                                    else if (priceObj instanceof Long) price = ((Long) priceObj).doubleValue();
+
+                                    if (priceObj instanceof Double)
+                                        price = (Double) priceObj;
+                                    else if (priceObj instanceof Long)
+                                        price = ((Long) priceObj).doubleValue();
+
                                     item.setPrice(price);
 
                                     Object qtyObj = itemMap.get("quantity");
                                     int qty = 0;
-                                    if (qtyObj instanceof Long) qty = ((Long) qtyObj).intValue();
-                                    else if (qtyObj instanceof Double) qty = ((Double) qtyObj).intValue();
+
+                                    if (qtyObj instanceof Long)
+                                        qty = ((Long) qtyObj).intValue();
+                                    else if (qtyObj instanceof Double)
+                                        qty = ((Double) qtyObj).intValue();
+
                                     item.setQuantity(qty);
 
                                     items.add(item);
                                 }
                             }
 
-                            Order order = new Order(orderId, deliveryAddress, paymentMethod,
-                                    paymentStatus, status, timestamp, items);
+                            Order order = new Order(
+                                    orderId,
+                                    deliveryAddress,
+                                    paymentMethod,
+                                    paymentStatus,
+                                    status,
+                                    timestamp,
+                                    items
+                            );
 
-                            // Optional: set totalAmount if you want
                             order.setTotalAmount(totalAmount);
 
                             orderList.add(order);
 
                         } catch (Exception e) {
-                            e.printStackTrace(); // catch parsing errors
+                            e.printStackTrace();
                         }
                     }
 
                     adapter.notifyDataSetChanged();
+
                 })
-                .addOnFailureListener(e -> {
-                    e.printStackTrace();
-                });
+                .addOnFailureListener(e -> e.printStackTrace());
     }
 }

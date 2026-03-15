@@ -1,13 +1,19 @@
 package com.mountrich.krushimitraadminapp.adapter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.mountrich.krushimitraadminapp.OrderDetailsActivity;
 import com.mountrich.krushimitraadminapp.R;
 import com.mountrich.krushimitraadminapp.model.Order;
 import com.mountrich.krushimitraadminapp.model.OrderItem;
@@ -21,8 +27,11 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
     private List<Order> orderList;
 
-    public OrderAdapter(List<Order> orderList) {
+    private OnOrderUpdatedListener listener;
+
+    public OrderAdapter(List<Order> orderList, OnOrderUpdatedListener listener) {
         this.orderList = orderList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -75,12 +84,56 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         }
 
         holder.btnView.setOnClickListener(v -> {
-            // TODO: open order details
+
+            Intent intent = new Intent(v.getContext(), OrderDetailsActivity.class);
+            intent.putExtra("orderId", order.getOrderId());
+            v.getContext().startActivity(intent);
+
         });
 
         holder.btnUpdate.setOnClickListener(v -> {
-            // TODO: update order status
+
+            showStatusDialog(v.getContext(), order.getOrderId());
+
         });
+    }
+
+
+
+    private void showStatusDialog(Context context, String orderId){
+
+        String[] statusOptions = {"Placed", "Shipped", "Delivered", "Cancelled"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Update Order Status");
+
+        builder.setItems(statusOptions, (dialog, which) -> {
+
+            String selectedStatus = statusOptions[which];
+
+            FirebaseFirestore.getInstance()
+                    .collection("orders")
+                    .document(orderId)
+                    .update("status", selectedStatus)
+                    .addOnSuccessListener(unused -> {
+
+                        Toast.makeText(context,
+                                "Status updated",
+                                Toast.LENGTH_SHORT).show();
+
+                        if(listener != null){
+                            listener.onOrderUpdated(); // reload orders
+                        }
+
+                    });
+
+        });
+
+        builder.show();
+    }
+
+    public interface OnOrderUpdatedListener {
+        void onOrderUpdated();
     }
 
     @Override

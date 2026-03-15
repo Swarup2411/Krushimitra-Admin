@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KrushimitraAdminApp">
         <activity
+            android:name=".OrderDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".EditProductActivity"
             android:exported="false" />
         <activity
@@ -31,7 +34,7 @@
             android:exported="true" />
         <activity
             android:name=".LoginActivityAdmin"
-            android:exported="true"/>
+            android:exported="true" />
         <activity
             android:name=".MainActivity"
             android:exported="false" />
