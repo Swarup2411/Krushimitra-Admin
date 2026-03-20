@@ -19,6 +19,11 @@ import androidx.navigation.ui.NavigationUI;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mountrich.krushimitraadminapp.databinding.ActivityUsersDetailsBinding;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
+import android.widget.Button;
+import android.widget.Toast;
 
 public class UserDetailsActivity extends AppCompatActivity {
 
@@ -27,6 +32,7 @@ public class UserDetailsActivity extends AppCompatActivity {
 
     FirebaseFirestore db;
     String userId;
+    Button btnCall, btnDeleteUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +44,8 @@ public class UserDetailsActivity extends AppCompatActivity {
         tvPhone = findViewById(R.id.tvPhone);
         tvAddress = findViewById(R.id.tvAddress);
         imgUser = findViewById(R.id.imgUser);
+        btnCall = findViewById(R.id.btnCall);
+        btnDeleteUser = findViewById(R.id.btnDeleteUser);
 
         db = FirebaseFirestore.getInstance();
 
@@ -45,6 +53,40 @@ public class UserDetailsActivity extends AppCompatActivity {
 
         loadUserDetails();
         loadUserAddress(); // 🔥 IMPORTANT
+
+
+        btnCall.setOnClickListener(v -> {
+
+            String phone = tvPhone.getText().toString();
+
+            if (phone.equals("N/A") || phone.isEmpty()) {
+                Toast.makeText(this, "Phone not available", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Call User")
+                    .setMessage("Do you want to call this user?")
+                    .setPositiveButton("Call", (dialog, which) -> {
+
+                        Intent intent = new Intent(Intent.ACTION_DIAL);
+                        intent.setData(Uri.parse("tel:" + phone));
+                        startActivity(intent);
+
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+
+        btnDeleteUser.setOnClickListener(v -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete User")
+                    .setMessage("Are you sure you want to delete this user?")
+                    .setPositiveButton("Delete", (dialog, which) -> deleteUser())
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
     }
 
     // ✅ 1. Load basic user info
@@ -104,6 +146,25 @@ public class UserDetailsActivity extends AppCompatActivity {
                     } else {
                         tvAddress.setText("No default address");
                     }
+                });
+    }
+
+
+    private void deleteUser() {
+
+        db.collection("users")
+                .document(userId)
+                .delete()
+                .addOnSuccessListener(unused -> {
+
+                    Toast.makeText(this, "User deleted successfully", Toast.LENGTH_SHORT).show();
+                    finish(); // go back
+
+                })
+                .addOnFailureListener(e -> {
+
+                    Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
                 });
     }
 }
