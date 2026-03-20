@@ -12,6 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KrushimitraAdminApp">
         <activity
+            android:name=".UserDetailsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KrushimitraAdminApp" />
+        <activity
             android:name=".OrderDetailsActivity"
             android:exported="false" />
         <activity

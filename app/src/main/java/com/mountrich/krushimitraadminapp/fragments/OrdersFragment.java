@@ -1,15 +1,19 @@
 package com.mountrich.krushimitraadminapp.fragments;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -26,8 +30,17 @@ public class OrdersFragment extends Fragment {
 
     RecyclerView recyclerView;
     OrderAdapter adapter;
-    List<Order> orderList;
+
+    List<Order> orderList = new ArrayList<>();
+    List<Order> filteredList = new ArrayList<>();
+
     FirebaseFirestore db;
+
+    TextView tvTotalOrders, tvRevenue, tvPending;
+    TextInputEditText etSearch;
+    ChipGroup chipGroup;
+
+    private String currentFilter = "All";
 
     public OrdersFragment() {}
 
@@ -35,7 +48,6 @@ public class OrdersFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
-        orderList = new ArrayList<>();
     }
 
     @Override
@@ -46,29 +58,89 @@ public class OrdersFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerOrders);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setHasFixedSize(true);
 
-        adapter = new OrderAdapter(orderList, new OrderAdapter.OnOrderUpdatedListener() {
-            @Override
-            public void onOrderUpdated() {
-                loadOrders();
-            }
-        });
+        tvTotalOrders = view.findViewById(R.id.tvTotalOrders);
+        tvRevenue = view.findViewById(R.id.tvRevenue);
+        tvPending = view.findViewById(R.id.tvPending);
+
+        etSearch = view.findViewById(R.id.etSearch);
+        chipGroup = view.findViewById(R.id.chipGroupStatus);
+
+        adapter = new OrderAdapter(filteredList, () -> loadOrders());
         recyclerView.setAdapter(adapter);
+
+        setupFilters();
+        setupSearch();
 
         loadOrders();
 
         return view;
     }
 
+    // 🔍 SEARCH
+    private void setupSearch() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                applyFilterAndSearch();
+            }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    // 🎯 FILTER (Chips)
+    private void setupFilters() {
+
+        chipGroup.setOnCheckedChangeListener((group, checkedId) -> {
+
+            if (checkedId == R.id.chipAll) currentFilter = "All";
+            else if (checkedId == R.id.chipPlaced) currentFilter = "Placed";
+            else if (checkedId == R.id.chipShipped) currentFilter = "Shipped";
+            else if (checkedId == R.id.chipDelivered) currentFilter = "Delivered";
+            else if (checkedId == R.id.chipCancelled) currentFilter = "Cancelled";
+
+            applyFilterAndSearch();
+        });
+    }
+
+    // 🔥 APPLY BOTH FILTER + SEARCH
+    private void applyFilterAndSearch() {
+
+        String searchText = etSearch.getText().toString().toLowerCase();
+
+        filteredList.clear();
+
+        for (Order order : orderList) {
+
+            boolean matchesFilter = currentFilter.equals("All") ||
+                    order.getStatus().equalsIgnoreCase(currentFilter);
+
+            boolean matchesSearch = order.getOrderId()
+                    .toLowerCase()
+                    .contains(searchText);
+
+            if (matchesFilter && matchesSearch) {
+                filteredList.add(order);
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    // 📊 LOAD ORDERS + ANALYTICS
     private void loadOrders() {
 
         db.collection("orders")
-                .orderBy("timestamp", Query.Direction.DESCENDING) // newest orders first
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
 
                     orderList.clear();
+
+                    int totalOrders = 0;
+                    double totalRevenue = 0;
+                    int pendingOrders = 0;
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
 
@@ -80,47 +152,49 @@ public class OrdersFragment extends Fragment {
                             String paymentStatus = doc.getString("paymentStatus");
                             String status = doc.getString("status");
 
-                            // 🔹 Safe timestamp parsing
+                            // 🔹 Timestamp
                             long timestamp = 0;
                             Object tsObj = doc.get("timestamp");
 
                             if (tsObj instanceof com.google.firebase.Timestamp) {
                                 timestamp = ((com.google.firebase.Timestamp) tsObj).getSeconds();
-                            }
-                            else if (tsObj instanceof Long) {
+                            } else if (tsObj instanceof Long) {
                                 timestamp = (Long) tsObj;
                             }
 
-                            // 🔹 Total amount
+                            // 🔹 Total Amount
                             double totalAmount = 0;
                             Object totalObj = doc.get("totalAmount");
 
                             if (totalObj instanceof Double) {
                                 totalAmount = (Double) totalObj;
-                            }
-                            else if (totalObj instanceof Long) {
+                            } else if (totalObj instanceof Long) {
                                 totalAmount = ((Long) totalObj).doubleValue();
                             }
 
-                            // 🔹 Items list
-                            List<OrderItem> items = new ArrayList<>();
+                            // 🔹 Analytics
+                            totalOrders++;
+                            totalRevenue += totalAmount;
 
+                            if ("Placed".equalsIgnoreCase(status)) {
+                                pendingOrders++;
+                            }
+
+                            // 🔹 Items
+                            List<OrderItem> items = new ArrayList<>();
                             List<Map<String, Object>> itemsMap =
                                     (List<Map<String, Object>>) doc.get("items");
 
                             if (itemsMap != null) {
-
                                 for (Map<String, Object> itemMap : itemsMap) {
 
                                     OrderItem item = new OrderItem();
 
-                                    item.setProductId((String) itemMap.get("productId"));
                                     item.setName((String) itemMap.get("name"));
                                     item.setImageUrl((String) itemMap.get("imageUrl"));
 
                                     Object priceObj = itemMap.get("price");
                                     double price = 0;
-
                                     if (priceObj instanceof Double)
                                         price = (Double) priceObj;
                                     else if (priceObj instanceof Long)
@@ -130,11 +204,8 @@ public class OrdersFragment extends Fragment {
 
                                     Object qtyObj = itemMap.get("quantity");
                                     int qty = 0;
-
                                     if (qtyObj instanceof Long)
                                         qty = ((Long) qtyObj).intValue();
-                                    else if (qtyObj instanceof Double)
-                                        qty = ((Double) qtyObj).intValue();
 
                                     item.setQuantity(qty);
 
@@ -142,15 +213,9 @@ public class OrdersFragment extends Fragment {
                                 }
                             }
 
-                            Order order = new Order(
-                                    orderId,
-                                    deliveryAddress,
-                                    paymentMethod,
-                                    paymentStatus,
-                                    status,
-                                    timestamp,
-                                    items
-                            );
+                            Order order = new Order(orderId, deliveryAddress,
+                                    paymentMethod, paymentStatus,
+                                    status, timestamp, items);
 
                             order.setTotalAmount(totalAmount);
 
@@ -161,9 +226,14 @@ public class OrdersFragment extends Fragment {
                         }
                     }
 
-                    adapter.notifyDataSetChanged();
+                    // 🔥 Apply filter + search after loading
+                    applyFilterAndSearch();
 
-                })
-                .addOnFailureListener(e -> e.printStackTrace());
+                    // 📊 Update Analytics UI
+                    tvTotalOrders.setText(String.valueOf(totalOrders));
+                    tvRevenue.setText("₹" + totalRevenue);
+                    tvPending.setText(String.valueOf(pendingOrders));
+
+                });
     }
 }

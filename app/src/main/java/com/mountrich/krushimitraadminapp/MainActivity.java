@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.mountrich.krushimitraadminapp.fragments.AddProductFragment;
 import com.mountrich.krushimitraadminapp.fragments.OrdersFragment;
 import com.mountrich.krushimitraadminapp.fragments.ProductFragment;
+import com.mountrich.krushimitraadminapp.fragments.UsersFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             }else if (item.getItemId() == R.id.orders) {
                 selectedFragment = new OrdersFragment();
             }else if (item.getItemId() == R.id.farmers) {
-//                selectedFragment = new FarmersFragment();
+                selectedFragment = new UsersFragment();
             }
 
             return loadFragment(selectedFragment);
