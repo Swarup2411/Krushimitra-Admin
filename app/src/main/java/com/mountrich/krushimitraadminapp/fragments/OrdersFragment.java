@@ -6,11 +6,13 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
@@ -39,6 +41,8 @@ public class OrdersFragment extends Fragment {
     TextView tvTotalOrders, tvRevenue, tvPending;
     TextInputEditText etSearch;
     ChipGroup chipGroup;
+    ProgressBar progressBar;
+    SwipeRefreshLayout swipeRefreshLayout;
 
     private String currentFilter = "All";
 
@@ -65,6 +69,13 @@ public class OrdersFragment extends Fragment {
 
         etSearch = view.findViewById(R.id.etSearch);
         chipGroup = view.findViewById(R.id.chipGroupStatus);
+
+        progressBar = view.findViewById(R.id.progressBar);
+
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefresh);
+
+        // Setup pull-to-refresh
+        swipeRefreshLayout.setOnRefreshListener(() -> loadOrders());
 
         adapter = new OrderAdapter(filteredList, () -> loadOrders());
         recyclerView.setAdapter(adapter);
@@ -131,6 +142,9 @@ public class OrdersFragment extends Fragment {
     // 📊 LOAD ORDERS + ANALYTICS
     private void loadOrders() {
 
+        // Show loader
+        swipeRefreshLayout.setRefreshing(true);
+
         db.collection("orders")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
@@ -143,70 +157,46 @@ public class OrdersFragment extends Fragment {
                     int pendingOrders = 0;
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-
                         try {
-
                             String orderId = doc.getString("orderId");
                             String deliveryAddress = doc.getString("deliveryAddress");
                             String paymentMethod = doc.getString("paymentMethod");
                             String paymentStatus = doc.getString("paymentStatus");
                             String status = doc.getString("status");
 
-                            // 🔹 Timestamp
                             long timestamp = 0;
                             Object tsObj = doc.get("timestamp");
-
-                            if (tsObj instanceof com.google.firebase.Timestamp) {
+                            if (tsObj instanceof com.google.firebase.Timestamp)
                                 timestamp = ((com.google.firebase.Timestamp) tsObj).getSeconds();
-                            } else if (tsObj instanceof Long) {
-                                timestamp = (Long) tsObj;
-                            }
+                            else if (tsObj instanceof Long) timestamp = (Long) tsObj;
 
-                            // 🔹 Total Amount
                             double totalAmount = 0;
                             Object totalObj = doc.get("totalAmount");
-
-                            if (totalObj instanceof Double) {
-                                totalAmount = (Double) totalObj;
-                            } else if (totalObj instanceof Long) {
+                            if (totalObj instanceof Double) totalAmount = (Double) totalObj;
+                            else if (totalObj instanceof Long)
                                 totalAmount = ((Long) totalObj).doubleValue();
-                            }
 
-                            // 🔹 Analytics
                             totalOrders++;
                             totalRevenue += totalAmount;
+                            if ("Placed".equalsIgnoreCase(status)) pendingOrders++;
 
-                            if ("Placed".equalsIgnoreCase(status)) {
-                                pendingOrders++;
-                            }
-
-                            // 🔹 Items
                             List<OrderItem> items = new ArrayList<>();
-                            List<Map<String, Object>> itemsMap =
-                                    (List<Map<String, Object>>) doc.get("items");
-
+                            List<Map<String, Object>> itemsMap = (List<Map<String, Object>>) doc.get("items");
                             if (itemsMap != null) {
                                 for (Map<String, Object> itemMap : itemsMap) {
-
                                     OrderItem item = new OrderItem();
-
                                     item.setName((String) itemMap.get("name"));
                                     item.setImageUrl((String) itemMap.get("imageUrl"));
 
                                     Object priceObj = itemMap.get("price");
                                     double price = 0;
-                                    if (priceObj instanceof Double)
-                                        price = (Double) priceObj;
-                                    else if (priceObj instanceof Long)
-                                        price = ((Long) priceObj).doubleValue();
-
+                                    if (priceObj instanceof Double) price = (Double) priceObj;
+                                    else if (priceObj instanceof Long) price = ((Long) priceObj).doubleValue();
                                     item.setPrice(price);
 
                                     Object qtyObj = itemMap.get("quantity");
                                     int qty = 0;
-                                    if (qtyObj instanceof Long)
-                                        qty = ((Long) qtyObj).intValue();
-
+                                    if (qtyObj instanceof Long) qty = ((Long) qtyObj).intValue();
                                     item.setQuantity(qty);
 
                                     items.add(item);
@@ -216,7 +206,6 @@ public class OrdersFragment extends Fragment {
                             Order order = new Order(orderId, deliveryAddress,
                                     paymentMethod, paymentStatus,
                                     status, timestamp, items);
-
                             order.setTotalAmount(totalAmount);
 
                             orderList.add(order);
@@ -226,14 +215,21 @@ public class OrdersFragment extends Fragment {
                         }
                     }
 
-                    // 🔥 Apply filter + search after loading
+                    // Apply filter + search after loading
                     applyFilterAndSearch();
 
-                    // 📊 Update Analytics UI
+                    // Update Analytics UI
                     tvTotalOrders.setText(String.valueOf(totalOrders));
                     tvRevenue.setText("₹" + totalRevenue);
                     tvPending.setText(String.valueOf(pendingOrders));
 
+                    // Hide loader
+                    swipeRefreshLayout.setRefreshing(false);
+
+                })
+                .addOnFailureListener(e -> {
+                    e.printStackTrace();
+                    swipeRefreshLayout.setRefreshing(false);
                 });
     }
 }
